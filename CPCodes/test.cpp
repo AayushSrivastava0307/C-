@@ -1,59 +1,71 @@
-// This program prints the C++ language standard your compiler is currently using
-// Freely redistributable, courtesy of learncpp.com (https://www.learncpp.com/cpp-tutorial/what-language-standard-is-my-compiler-using/)
+#include<bits/stdc++.h>
+using namespace std ;
+#define int int64_t
+ 
+ 
+ 
+//--------------------------------------------------Debuggger-----------------------------------------------------//
+void dbg_out(){cerr << endl;}
+    template<typename Head, typename... Tail> void dbg_out(Head H, Tail... T) { cerr << ' ' << H; dbg_out(T...); }
+    #define dbg(...) cerr << "(" << #__VA_ARGS__ << "):", dbg_out(__VA_ARGS__)
+//----------------------------------------------------------------------------------------------------------------//
+ 
+ 
+static const int MOD = 1000000007;
 
-#include <iostream>
-
-const int numStandards = 7;
-// The C++26 stdCode is a placeholder since the exact code won't be determined until the standard is finalized
-const long stdCode[numStandards] = { 199711L, 201103L, 201402L, 201703L, 202002L, 202302L, 202612L};
-const char* stdName[numStandards] = { "Pre-C++11", "C++11", "C++14", "C++17", "C++20", "C++23", "C++26" };
-
-long getCPPStandard()
-{
-    // Visual Studio is non-conforming in support for __cplusplus (unless you set a specific compiler flag, which you probably haven't)
-    // In Visual Studio 2015 or newer we can use _MSVC_LANG instead
-    // See https://devblogs.microsoft.com/cppblog/msvc-now-correctly-reports-__cplusplus/
-#if defined (_MSVC_LANG)
-    return _MSVC_LANG;
-#elif defined (_MSC_VER)
-    // If we're using an older version of Visual Studio, bail out
-    return -1;
-#else
-    // __cplusplus is the intended way to query the language standard code (as defined by the language standards)
-    return __cplusplus;
-#endif
+vector<int> computeinverses(int n) {
+    vector<int> inv(n+1);
+    if(n >= 1) inv[1] = 1;
+    for(int i = 2; i <= n; i++) {
+        inv[i] = MOD - (MOD / i) * inv[MOD % i] % MOD;
+    }
+    return inv;
 }
 
-int main()
+int bin(int n_mod, int r, const vector<int> &inv) {
+    if(r < 0) return 0;
+    if(r == 0) return 1;
+    int64_t res = 1;
+    for(int i = 1; i <= r; ++i) {
+        int64_t term = (n_mod - (i - 1)) % MOD;
+        if(term < 0) term += MOD;
+        res = res * term % MOD;
+        res = res * inv[i] % MOD;
+    }
+    return (int)res;
+}
+
+void solve()
 {
-    long standard = getCPPStandard();
-
-    if (standard == -1)
+    int a,b,k;
+    cin >>a>>b>>k;
+    int64_t n_val = (a -1)*k+1;
+    int n_mod = n_val % MOD;
+    if(n_mod < 0) n_mod += MOD;
+    int n_ans = n_mod;
+    vector<int> inv = computeinverses((int)a);
+    
+    int64_t C_mod = bin(n_mod, (int)a, inv);
+    int64_t term = ((b - 1) % MOD) * (k % MOD) % MOD;
+    if(term < 0) term += MOD;
+    int m_ans = (term * C_mod + 1) % MOD;
+    cout<<n_ans<<" "<<m_ans<<endl;
+}
+ 
+ 
+ 
+signed main()
+{
+ 
+    ios_base::sync_with_stdio(false);
+    cin.tie(nullptr);
+ 
+    int tc=1;
+    cin>>tc;
+ 
+    while(tc--)
     {
-        std::cout << "Error: Unable to determine your language standard.  Sorry.\n";
-        return 0;
+        solve();
     }
-
-    for (int i = 0; i < numStandards; ++i)
-    {
-        // If the reported version is one of the finalized standard codes
-        // then we know exactly what version the compiler is running
-        if (standard == stdCode[i])
-        {
-            std::cout << "Your compiler is using " << stdName[i]
-                << " (language standard code " << standard << "L)\n";
-            break;
-        }
-
-        // If the reported version is between two finalized standard codes,
-        // this must be a preview / experimental support for the next upcoming version.
-        if (standard < stdCode[i])
-        {
-            std::cout << "Your compiler is using a preview/pre-release of " << stdName[i]
-                << " (language standard code " << standard << "L)\n";
-            break;
-        }
-    }
-
     return 0;
 }
